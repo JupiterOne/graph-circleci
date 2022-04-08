@@ -150,12 +150,3 @@ export class APIClient {
 export function createAPIClient(config: IntegrationConfig): APIClient {
   return new APIClient(config);
 }
-
-(async () => {
-  // Use methods provided in the Graph class to create a graph that has the following entities:
-  // - Users
-  // - Posts
-  // And the following relationships:
-  // - User has Post
-  console.log('hellow world');
-})();
