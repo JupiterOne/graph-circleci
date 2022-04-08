@@ -1,9 +1,14 @@
-import http from 'http';
+import fetch from 'node-fetch';
 
-import { IntegrationProviderAuthenticationError } from '@jupiterone/integration-sdk-core';
+import {
+  IntegrationProviderAPIError,
+  IntegrationProviderAuthenticationError,
+} from '@jupiterone/integration-sdk-core';
 
 import { IntegrationConfig } from './config';
-import { AcmeUser, AcmeGroup } from './types';
+import { AcmeUser, AcmeGroup, CircleciAccountResponse } from './types';
+
+import { retry } from '@lifeomic/attempt';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
@@ -18,35 +23,58 @@ export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 export class APIClient {
   constructor(readonly config: IntegrationConfig) {}
 
+  private baseUri = `https://circleci.com/api/v2/`;
+  private withBaseUri = (path: string) => `${this.baseUri}${path}`;
+
+  /**
+   *
+   * @param endpoint
+   * @returns
+   */
+
+  private async getRequest<T>(endpoint: string): Promise<T> {
+    try {
+      const options = {
+        method: 'GET',
+        headers: {
+          Authorization: this.config.apiKey,
+        },
+      };
+
+      const response = await retry(
+        async () => {
+          return await fetch(endpoint, options);
+        },
+        {
+          delay: 5000,
+          maxAttempts: 10,
+          handleError: (err, context) => {
+            if (err.statusCode !== 429) context.abort();
+          },
+        },
+      );
+
+      return response.json();
+    } catch (err) {
+      throw new IntegrationProviderAPIError({
+        endpoint: endpoint,
+        status: err.status,
+        statusText: err.statusText,
+      });
+    }
+  }
+
   public async verifyAuthentication(): Promise<void> {
     // TODO make the most light-weight request possible to validate
     // authentication works with the provided credentials, throw an err if
     // authentication fails
-    const request = new Promise<void>((resolve, reject) => {
-      http.get(
-        {
-          hostname: 'localhost',
-          port: 443,
-          path: '/api/v1/some/endpoint?limit=1',
-          agent: false,
-          timeout: 10,
-        },
-        (res) => {
-          if (res.statusCode !== 200) {
-            reject(new Error('Provider authentication failed'));
-          } else {
-            resolve();
-          }
-        },
-      );
-    });
-
+    const uri = this.withBaseUri('me/');
     try {
-      await request;
+      await this.getRequest<CircleciAccountResponse>(uri);
     } catch (err) {
       throw new IntegrationProviderAuthenticationError({
         cause: err,
-        endpoint: 'https://localhost/api/v1/some/endpoint?limit=1',
+        endpoint: uri,
         status: err.status,
         statusText: err.statusText,
       });
@@ -122,3 +150,12 @@ export class APIClient {
 export function createAPIClient(config: IntegrationConfig): APIClient {
   return new APIClient(config);
 }
+
+(async () => {
+  // Use methods provided in the Graph class to create a graph that has the following entities:
+  // - Users
+  // - Posts
+  // And the following relationships:
+  // - User has Post
+  console.log('hellow world');
+})();
