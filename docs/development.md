@@ -1,28 +1,21 @@
 # Development
 
-Add details here to give a brief overview of how to work with the provider APIs.
-Please reference any SDKs or API docs used to help build the integration here.
-
-## Prerequisites
-
-Supply details about software or tooling (like maybe Docker or Terraform) that
-is needed for development here.
-
-Please supply references to documentation that details how to install those
-dependencies here.
-
-Tools like Node.js and NPM are already covered in the [README](../README.md) so
-don't bother documenting that here.
+This integration focuses on [CircleCI](https://www.circleci.com/) and is using
+[CircleCI API](https://circleci.com/api/v2/) for interacting with the CircleCI
+resources.
 
 ## Provider account setup
 
-Please provide information about the steps needed to create an account with a
-provider. Images and references to a provider's documentation is very helpful
-for new developers picking up your work.
+1. Sign-up for a CircleCI account.
+2. Link a VCS provider (Github/Bitbucket).
+3. Take note of the provided domain.
+4. In the dashboard, go to User Settings > Personal API Tokens.
+5. Generate an API token.
 
 ## Authentication
 
-Supply details here for information on how to authenticate with a provider so
-that developers have an idea of what's needed to hit APIs. It may be useful to
-provide explanations for each value specified in the
-[`IntegrationInstanceConfigFieldMap`](../src/config.ts).
+Provide the `API_KEY`, `LOGIN` (github/bitbucket username), and the user
+`USER_ID` (obtained from User Settings) to the `.env`. You can use
+[`.env.example`](../.env.example) as a reference.
+
+The API Key will be used to authorize requests using Basic Authorization.

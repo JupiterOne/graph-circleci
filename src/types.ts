@@ -1,25 +1,35 @@
-// Providers often supply types with their API libraries.
-
-export interface AcmeUser {
+export type CircleCIUserGroup = {
   id: string;
   name: string;
-}
+  slug: string;
+  vcs_type: string;
+};
 
-export interface AcmeGroup {
+export type CircleCIPipeline = {
   id: string;
   name: string;
-  users?: Pick<AcmeUser, 'id'>[];
-}
+  project_slug: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+};
 
-// Those can be useful to a degree, but often they're just full of optional
-// values. Understanding the response data may be more reliably accomplished by
-// reviewing the API response recordings produced by testing the wrapper client
-// (./client.ts). However, when there are no types provided, it is necessary to define
-// opaque types for each resource, to communicate the records that are expected
-// to come from an endpoint and are provided to iterating functions.
+export type CircleCIWorkflow = {
+  id: string;
+  name: string;
+  project_slug: string;
+  pipeline_number: number;
+};
 
-/*
-import { Opaque } from 'type-fest';
-export type AcmeUser = Opaque<any, 'AcmeUser'>;
-export type AcmeGroup = Opaque<any, 'AcmeGroup'>;
-*/
+export type CircleCIProject = {
+  organization_id: string;
+  id: string;
+  name: string;
+  organization_name: string;
+};
+
+export type CircleCIUser = {
+  id: string;
+  name: string;
+  login: string;
+};

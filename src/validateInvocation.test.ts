@@ -2,6 +2,7 @@ import {
   createMockExecutionContext,
   Recording,
 } from '@jupiterone/integration-sdk-testing';
+
 import { integrationConfig } from '../test/config';
 import { setupProjectRecording } from '../test/recording';
 import { IntegrationConfig, validateInvocation } from './config';
@@ -21,7 +22,7 @@ describe('#validateInvocation', () => {
     });
 
     await expect(validateInvocation(executionContext)).rejects.toThrow(
-      'Config requires all of {clientId, clientSecret}',
+      'Config requires  {apiKey, login, userId}',
     );
   });
 
@@ -67,34 +68,14 @@ describe('#validateInvocation', () => {
 
         const executionContext = createMockExecutionContext({
           instanceConfig: {
-            clientId: 'INVALID',
-            clientSecret: integrationConfig.clientSecret,
+            apiKey: 'INVALID',
+            login: 'INVALID',
+            userId: 'INVALID',
           },
         });
 
         // tests validate that invalid configurations throw an error
         // with an appropriate and expected message.
-        await expect(validateInvocation(executionContext)).rejects.toThrow(
-          'Provider authentication failed at https://localhost/api/v1/some/endpoint?limit=1: 401 Unauthorized',
-        );
-      });
-
-      test.skip('should throw if clientSecret is invalid', async () => {
-        recording = setupProjectRecording({
-          directory: __dirname,
-          name: 'client-secret-auth-error',
-          options: {
-            recordFailedRequests: true,
-          },
-        });
-
-        const executionContext = createMockExecutionContext({
-          instanceConfig: {
-            clientId: integrationConfig.clientSecret,
-            clientSecret: 'INVALID',
-          },
-        });
-
         await expect(validateInvocation(executionContext)).rejects.toThrow(
           'Provider authentication failed at https://localhost/api/v1/some/endpoint?limit=1: 401 Unauthorized',
         );
