@@ -12,12 +12,17 @@ export function setupProjectRecording(
 ): Recording {
   return setupRecording({
     ...input,
-    redactedRequestHeaders: ['Authorization'],
-    redactedResponseHeaders: ['set-cookie'],
+    redactedRequestHeaders: ['Authorization', 'circle-token'],
+    redactedResponseHeaders: ['set-cookie', 'x-circleci-identity'],
     mutateEntry: mutations.unzipGzippedRecordingEntry,
-    /*mutateEntry: (entry) => {
-      redact(entry);
-    },*/
+
+    options: {
+      matchRequestsBy: {
+        url: {
+          hostname: false,
+        },
+      },
+    },
   });
 }
 

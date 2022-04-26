@@ -1,121 +1,142 @@
-import http from 'http';
-
-import { IntegrationProviderAuthenticationError } from '@jupiterone/integration-sdk-core';
+import fetch from 'node-fetch';
+import {
+  IntegrationProviderAPIError,
+  IntegrationProviderAuthenticationError,
+} from '@jupiterone/integration-sdk-core';
 
 import { IntegrationConfig } from './config';
-import { AcmeUser, AcmeGroup } from './types';
+import {
+  CircleCIPipeline,
+  CircleCIProject,
+  CircleCIUser,
+  CircleCIUserGroup,
+} from './types';
+
+import { retry } from '@lifeomic/attempt';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
-/**
- * An APIClient maintains authentication state and provides an interface to
- * third party data APIs.
- *
- * It is recommended that integrations wrap provider data APIs to provide a
- * place to handle error responses and implement common patterns for iterating
- * resources.
- */
 export class APIClient {
   constructor(readonly config: IntegrationConfig) {}
 
-  public async verifyAuthentication(): Promise<void> {
-    // TODO make the most light-weight request possible to validate
-    // authentication works with the provided credentials, throw an err if
-    // authentication fails
-    const request = new Promise<void>((resolve, reject) => {
-      http.get(
-        {
-          hostname: 'localhost',
-          port: 443,
-          path: '/api/v1/some/endpoint?limit=1',
-          agent: false,
-          timeout: 10,
-        },
-        (res) => {
-          if (res.statusCode !== 200) {
-            reject(new Error('Provider authentication failed'));
-          } else {
-            resolve();
-          }
-        },
-      );
-    });
+  private baseUri = `https://circleci.com/api/v2/`;
+  private withBaseUri = (path: string) => `${this.baseUri}${path}`;
 
+  private async getRequest<T>(
+    endpoint: string,
+    method: 'GET' | 'HEAD' = 'GET',
+  ): Promise<T> {
     try {
-      await request;
+      const options = {
+        method,
+        headers: {
+          'Circle-Token': this.config.apiKey,
+        },
+      };
+      const response = await retry(async () => await fetch(endpoint, options), {
+        delay: 5000,
+        maxAttempts: 10,
+        handleError: (err, context) => {
+          if (
+            err.statusCode !== 429 ||
+            ([500, 502, 503].includes(err.statusCode) && context.attemptNum > 1)
+          )
+            context.abort();
+        },
+      });
+
+      return response.json();
     } catch (err) {
-      throw new IntegrationProviderAuthenticationError({
-        cause: err,
-        endpoint: 'https://localhost/api/v1/some/endpoint?limit=1',
+      throw new IntegrationProviderAPIError({
+        endpoint: endpoint,
         status: err.status,
         statusText: err.statusText,
       });
     }
   }
 
-  /**
-   * Iterates each user resource in the provider.
-   *
-   * @param iteratee receives each resource to produce entities/relationships
-   */
-  public async iterateUsers(
-    iteratee: ResourceIteratee<AcmeUser>,
+  private async pipelinePaginatedRequest<T>(
+    uri: string,
+    method: 'GET' | 'HEAD' = 'GET',
+    iteratee: ResourceIteratee<T>,
   ): Promise<void> {
-    // TODO paginate an endpoint, invoke the iteratee with each record in the
-    // page
-    //
-    // The provider API will hopefully support pagination. Functions like this
-    // should maintain pagination state, and for each page, for each record in
-    // the page, invoke the `ResourceIteratee`. This will encourage a pattern
-    // where each resource is processed and dropped from memory.
+    try {
+      let next: string | null = null;
+      do {
+        const response = await this.getRequest(next || uri, method);
 
-    const users: AcmeUser[] = [
-      {
-        id: 'acme-user-1',
-        name: 'User One',
-      },
-      {
-        id: 'acme-user-2',
-        name: 'User Two',
-      },
-    ];
+        for (const item of response.items) {
+          await iteratee(item);
+        }
 
-    for (const user of users) {
-      await iteratee(user);
+        next = response.next_page_token;
+        if (next) {
+          next = `${uri}&page_token=${response.next_page_token}`;
+        }
+      } while (next);
+    } catch (err) {
+      throw new IntegrationProviderAPIError({
+        cause: new Error(err.message),
+        endpoint: uri,
+        status: err.statusCode,
+        statusText: err.message,
+      });
     }
   }
 
-  /**
-   * Iterates each group resource in the provider.
-   *
-   * @param iteratee receives each resource to produce entities/relationships
-   */
-  public async iterateGroups(
-    iteratee: ResourceIteratee<AcmeGroup>,
-  ): Promise<void> {
-    // TODO paginate an endpoint, invoke the iteratee with each record in the
-    // page
-    //
-    // The provider API will hopefully support pagination. Functions like this
-    // should maintain pagination state, and for each page, for each record in
-    // the page, invoke the `ResourceIteratee`. This will encourage a pattern
-    // where each resource is processed and dropped from memory.
-
-    const groups: AcmeGroup[] = [
-      {
-        id: 'acme-group-1',
-        name: 'Group One',
-        users: [
-          {
-            id: 'acme-user-1',
-          },
-        ],
-      },
-    ];
-
-    for (const group of groups) {
-      await iteratee(group);
+  public async verifyAuthentication(): Promise<void> {
+    const uri = this.withBaseUri('me/');
+    try {
+      await this.getRequest(uri);
+    } catch (err) {
+      throw new IntegrationProviderAuthenticationError({
+        cause: err,
+        endpoint: uri,
+        status: err.status,
+        statusText: err.statusText,
+      });
     }
+  }
+
+  public async iteratePipelines(
+    organization: string,
+    iteratee: ResourceIteratee<CircleCIPipeline>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest(
+      this.withBaseUri(`pipeline?org-slug=${organization}`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  public async iterateUserGroups(
+    iteratee: ResourceIteratee<CircleCIUserGroup>,
+  ): Promise<void> {
+    const userGroups: CircleCIUserGroup[] = await this.getRequest(
+      this.withBaseUri(`me/collaborations`),
+    );
+
+    for (const item of userGroups) {
+      await iteratee(item);
+    }
+  }
+
+  public async fetchUser(): Promise<CircleCIUser> {
+    return this.getRequest(this.withBaseUri(`me`));
+  }
+
+  public async fetchPipelineDetails(id: string): Promise<CircleCIPipeline> {
+    return this.getRequest(this.withBaseUri(`pipeline/${id}`));
+  }
+
+  public async fetchProjectDetails(
+    project_slug: string,
+  ): Promise<CircleCIProject> {
+    return this.getRequest(this.withBaseUri(`project/${project_slug}`));
+  }
+
+  public async fetchUserDetail(): Promise<CircleCIUser> {
+    return this.getRequest(this.withBaseUri(`me`));
   }
 }
 

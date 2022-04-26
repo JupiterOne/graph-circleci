@@ -7,3 +7,18 @@ and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+
+- Ingest new entities
+  - `circleci_account`
+  - `circleci_user`
+  - `circleci_user_group`
+  - `circleci_project`
+  - `circleci_pipeline`
+- Build new relationships
+  - `circleci_account_has_user`
+  - `circleci_account_has_user_group`
+  - `circleci_user_group_has_user`
+  - `circleci_user_group_has_project`
+  - `circleci_project_has_pipeline`
