@@ -1,4 +1,4 @@
-# Integration with JupiterOne
+# CircleCI Integration with JupiterOne
 
 ## CircleCI + JupiterOne Integration Benefits
 
