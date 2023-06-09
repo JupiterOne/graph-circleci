@@ -25,12 +25,13 @@ export async function fetchPipelines({
             // We have seen instances where the API response has the same Pipeline
             // more than once.  Documentation confirms the pipeline ID is a UUID,
             // so we can safely treat these as duplicates and skip adding them.
-            if (!jobState.hasKey(getPipelineKey(pipeline.id))) {
+            const pipelineKey = getPipelineKey(pipeline.id);
+            if (!jobState.hasKey(pipelineKey)) {
               const pipelineEntity = createPipelineEntity(pipeline);
               await jobState.addEntity(pipelineEntity);
             } else {
               logger.info(
-                { pipeline },
+                { pipelineKey },
                 `Encountered a duplicate pipeline key.  Skipping.`,
               );
             }
