@@ -6,11 +6,12 @@ import {
 import { createAPIClient } from '../../client';
 import { IntegrationConfig } from '../../config';
 import { Entities, Steps } from '../constants';
-import { createPipelineEntity } from './converter';
+import { createPipelineEntity, getPipelineKey } from './converter';
 
 export async function fetchPipelines({
   instance,
   jobState,
+  logger,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
   const apiClient = createAPIClient(instance.config);
 
@@ -21,8 +22,18 @@ export async function fetchPipelines({
         await apiClient.iteratePipelines(
           userGroupEntity.slug.toString(),
           async (pipeline) => {
-            const pipelineEntity = createPipelineEntity(pipeline);
-            await jobState.addEntity(pipelineEntity);
+            // We have seen instances where the API response has the same Pipeline
+            // more than once.  Documentation confirms the pipeline ID is a UUID,
+            // so we can safely treat these as duplicates and skip adding them.
+            if (!jobState.hasKey(getPipelineKey(pipeline.id))) {
+              const pipelineEntity = createPipelineEntity(pipeline);
+              await jobState.addEntity(pipelineEntity);
+            } else {
+              logger.info(
+                { pipeline },
+                `Encountered a duplicate pipeline key.  Skipping.`,
+              );
+            }
           },
         );
       }
