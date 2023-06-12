@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.1 - 2023-06-12
+
+### Fixed
+
+- Catching duplicate pipeline entries being returned from the API.
+
 ## 1.0.0 - 2022-04-26
 
 ### Added
