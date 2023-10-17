@@ -2,6 +2,10 @@
   "name": "@jupiterone/graph-circleci",
   "version": "1.0.1",
   "description": "A JupiterOne Integration for ingesting data of the CircleCI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JupiterOne/graph-circleci"
+  },
   "license": "MPL-2.0",
   "main": "src/index.js",
   "types": "src/index.d.ts",
