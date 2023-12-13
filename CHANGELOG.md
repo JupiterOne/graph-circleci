@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.2 2023-12-13
+
+- Upgraded packages version
+- Updated to use node 18.x
+
 ## 1.0.1 - 2023-06-12
 
 ### Fixed
