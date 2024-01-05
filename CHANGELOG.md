@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.3 2024-01-05
+
+- Fixed issue when the organization slug has a / in the name
+
 ## 1.0.2 2023-12-13
 
 - Upgraded packages version
