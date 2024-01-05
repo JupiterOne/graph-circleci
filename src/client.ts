@@ -102,6 +102,7 @@ export class APIClient {
     organization: string,
     iteratee: ResourceIteratee<CircleCIPipeline>,
   ): Promise<void> {
+    organization = encodeURIComponent(organization);
     await this.pipelinePaginatedRequest(
       this.withBaseUri(`pipeline?org-slug=${organization}`),
       'GET',
