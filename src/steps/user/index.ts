@@ -19,8 +19,9 @@ import { createUserEntity } from './converter';
 export async function fetchUser({
   instance,
   jobState,
+  logger,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
-  const apiClient = createAPIClient(instance.config);
+  const apiClient = createAPIClient(instance.config, logger);
 
   const user = await apiClient.fetchUser();
   const userEntity = createUserEntity(user);
