@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import {
+  IntegrationLogger,
   IntegrationProviderAPIError,
   IntegrationProviderAuthenticationError,
 } from '@jupiterone/integration-sdk-core';
@@ -17,7 +18,10 @@ import { retry } from '@lifeomic/attempt';
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
 export class APIClient {
-  constructor(readonly config: IntegrationConfig) {}
+  constructor(
+    readonly config: IntegrationConfig,
+    readonly logger?: IntegrationLogger,
+  ) {}
 
   private baseUri = `https://circleci.com/api/v2/`;
   private withBaseUri = (path: string) => `${this.baseUri}${path}`;
@@ -75,6 +79,7 @@ export class APIClient {
         }
       } while (next);
     } catch (err) {
+      this.logger?.warn(err, 'Could not get Pipeline Paginated Request');
       throw new IntegrationProviderAPIError({
         cause: new Error(err.message),
         endpoint: uri,
@@ -141,6 +146,9 @@ export class APIClient {
   }
 }
 
-export function createAPIClient(config: IntegrationConfig): APIClient {
-  return new APIClient(config);
+export function createAPIClient(
+  config: IntegrationConfig,
+  logger?: IntegrationLogger,
+): APIClient {
+  return new APIClient(config, logger);
 }

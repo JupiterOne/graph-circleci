@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.4 2024-01-09
+
+- Added logger to the Api Client
+
 ## 1.0.3 2024-01-05
 
 - Fixed issue when the organization slug has a / in the name

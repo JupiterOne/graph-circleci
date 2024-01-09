@@ -19,8 +19,9 @@ import { createUserGroupEntity } from './converter';
 export async function fetchUserGroups({
   instance,
   jobState,
+  logger,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
-  const apiClient = createAPIClient(instance.config);
+  const apiClient = createAPIClient(instance.config, logger);
   await apiClient.iterateUserGroups(async (userGroup) => {
     const userGroupEntity = createUserGroupEntity(userGroup);
 
