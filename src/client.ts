@@ -20,7 +20,7 @@ export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 export class APIClient {
   constructor(
     readonly config: IntegrationConfig,
-    readonly logger: IntegrationLogger,
+    readonly logger?: IntegrationLogger,
   ) {}
 
   private baseUri = `https://circleci.com/api/v2/`;
@@ -79,7 +79,7 @@ export class APIClient {
         }
       } while (next);
     } catch (err) {
-      this.logger.warn(err, 'Could not get Pipeline Paginated Request');
+      this.logger?.warn(err, 'Could not get Pipeline Paginated Request');
       throw new IntegrationProviderAPIError({
         cause: new Error(err.message),
         endpoint: uri,
@@ -148,7 +148,7 @@ export class APIClient {
 
 export function createAPIClient(
   config: IntegrationConfig,
-  logger: IntegrationLogger,
+  logger?: IntegrationLogger,
 ): APIClient {
   return new APIClient(config, logger);
 }
