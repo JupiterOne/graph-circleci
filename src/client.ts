@@ -51,6 +51,7 @@ export class APIClient {
 
       return response.json();
     } catch (err) {
+      this.logger?.warn(err, 'Could not get Request on API Client');
       throw new IntegrationProviderAPIError({
         endpoint: endpoint,
         status: err.status,
