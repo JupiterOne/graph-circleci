@@ -8,6 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.8 2024-01-15
+
+- Move node-fetch to dev dependencies
+
+## 1.0.7 2024-01-12
+
+- Added more logger warn for error troubleshooting
+
 ## 1.0.6 2024-01-09
 
 - Added logger to the Api Client

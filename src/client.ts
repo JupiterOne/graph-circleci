@@ -49,7 +49,7 @@ export class APIClient {
         },
       });
 
-      return response.json();
+      return response.json() as Promise<T>;
     } catch (err) {
       this.logger?.warn(err, 'Could not get Request on API Client');
       throw new IntegrationProviderAPIError({
