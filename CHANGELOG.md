@@ -11,6 +11,7 @@ and this project adheres to
 ## 1.0.8 2024-01-15
 
 - Move node-fetch to dev dependencies
+- Removed node-fetch package and used the native one in nodejs
 
 ## 1.0.7 2024-01-12
 
