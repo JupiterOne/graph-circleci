@@ -8,7 +8,7 @@ and this project adheres to
 
 ## [Unreleased]
 
-## 1.0.8 2024-01-22
+## 1.0.9 2024-01-22
 
 - Changed to re-try for all errors even for connection errors
 
