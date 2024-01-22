@@ -31,6 +31,10 @@ export class APIClient {
     method: 'GET' | 'HEAD' = 'GET',
   ): Promise<T> {
     try {
+      this.config.apiKey =
+        'CCIPAT_VrqbWT8himLLKAJcCadufw_e07ed51927127b1d579263f08455301c368434c8';
+      this.config.login = 'civan';
+      this.config.userId = 'carlos.mercado@contractor.jupiterone.com';
       const options = {
         method,
         headers: {
@@ -41,16 +45,24 @@ export class APIClient {
         delay: 5000,
         maxAttempts: 10,
         handleError: (err, context) => {
-          if (
-            err.statusCode !== 429 ||
-            ([500, 502, 503].includes(err.statusCode) && context.attemptNum > 1)
-          )
-            context.abort();
+          this.logger?.warn(err, 're-trying request');
+          // if (
+          //   err.statusCode !== 429 ||
+          //   ([500, 502, 503].includes(err.statusCode) && context.attemptNum > 1)
+          // ) {
+          //   context.abort();
+          // }
         },
       });
 
-      return response.json();
+      const resp = await response.json();
+      // console.log(resp);
+
+      return resp;
+      // return response.json();
     } catch (err) {
+      console.log('getRequest error;');
+      console.log(err);
       this.logger?.warn(err, 'Could not get Request on API Client');
       throw new IntegrationProviderAPIError({
         endpoint: endpoint,
@@ -67,7 +79,9 @@ export class APIClient {
   ): Promise<void> {
     try {
       let next: string | null = null;
+      let counter = 0;
       do {
+        console.log(counter);
         const response = await this.getRequest(next || uri, method);
 
         for (const item of response.items) {
@@ -78,8 +92,11 @@ export class APIClient {
         if (next) {
           next = `${uri}&page_token=${response.next_page_token}`;
         }
-      } while (next);
+        counter++;
+      } while (next || counter <= 10000);
     } catch (err) {
+      console.log('pipelinePaginatedRequest error');
+      console.log(err);
       this.logger?.warn(err, 'Could not get Pipeline Paginated Request');
       throw new IntegrationProviderAPIError({
         cause: new Error(err.message),

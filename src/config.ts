@@ -30,6 +30,10 @@ export async function validateInvocation(
   context: IntegrationExecutionContext<IntegrationConfig>,
 ) {
   const { config } = context.instance;
+  config.apiKey =
+    'CCIPAT_VrqbWT8himLLKAJcCadufw_e07ed51927127b1d579263f08455301c368434c8';
+  config.login = 'civan';
+  config.userId = 'carlos.mercado@contractor.jupiterone.com';
 
   if (!config.apiKey || !config.login || !config.userId) {
     throw new IntegrationValidationError(
