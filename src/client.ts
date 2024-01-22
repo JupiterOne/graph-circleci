@@ -41,11 +41,7 @@ export class APIClient {
         delay: 5000,
         maxAttempts: 10,
         handleError: (err, context) => {
-          if (
-            err.statusCode !== 429 ||
-            ([500, 502, 503].includes(err.statusCode) && context.attemptNum > 1)
-          )
-            context.abort();
+          this.logger?.warn(err, 'retry-handler error');
         },
       });
 
