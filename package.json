@@ -1,6 +1,6 @@
 {
   "name": "@jupiterone/graph-circleci",
-  "version": "1.0.11",
+  "version": "1.0.14",
   "description": "A JupiterOne Integration for ingesting data of the CircleCI",
   "repository": {
     "type": "git",

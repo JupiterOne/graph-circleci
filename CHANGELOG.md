@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.13 2024-01-23
+
+- Adjusted Retry logic to take into account limit time
+- Better error handling and more logs to troubleshoot
+
 ## 1.0.11 2024-01-22
 
 - Changed to re-try for all errors even for connection errors

@@ -14,6 +14,7 @@ import {
 } from './types';
 
 import { retry } from '@lifeomic/attempt';
+import { fatalRequestError, retryableRequestError } from './error';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
@@ -37,13 +38,49 @@ export class APIClient {
           'Circle-Token': this.config.apiKey,
         },
       };
-      const response = await retry(async () => await fetch(endpoint, options), {
-        delay: 5000,
-        maxAttempts: 10,
-        handleError: (err, context) => {
-          this.logger?.warn(err, 'retry-handler error');
+
+      let retryDelay = 0;
+      const response = await retry(
+        async () => {
+          const resp = await fetch(endpoint, options);
+          retryDelay = 5000;
+
+          if (resp.ok) {
+            return resp;
+          }
+
+          if (isRetryableRequest(resp)) {
+            const headers = resp.headers;
+            const retryAfterHeader = Number(headers.get('retry-after'));
+            const xRateLimitHeader = Number(headers.get('x-ratelimit-limit'));
+            const rateLimitHeader = Number(headers.get('ratelimit-limit'));
+            const serverRetryDelay =
+              retryAfterHeader || xRateLimitHeader || rateLimitHeader;
+
+            if (serverRetryDelay) {
+              retryDelay = serverRetryDelay * 1000;
+              this.logger?.warn(serverRetryDelay, 'Retry Delay');
+            }
+
+            this.logger?.warn(resp, 're-trying request');
+
+            throw retryableRequestError(resp);
+          } else {
+            this.logger?.warn(resp, 'fatal request error, not retrying');
+            throw fatalRequestError(resp);
+          }
         },
-      });
+        {
+          calculateDelay: () => retryDelay,
+          maxAttempts: 10,
+          handleError: (err, context) => {
+            this.logger?.warn(err, 're-trying request');
+            if (!err.retryable) {
+              context.abort();
+            }
+          },
+        },
+      );
 
       return response.json();
     } catch (err) {
@@ -148,4 +185,19 @@ export function createAPIClient(
   logger?: IntegrationLogger,
 ): APIClient {
   return new APIClient(config, logger);
+}
+
+/**
+ * Function for determining if a request is retryable
+ * based on the returned status.
+ */
+function isRetryableRequest({ status }: Response): boolean {
+  // if no status code, assume it's retryable
+  if (!status) return true;
+
+  return (
+    // 5xx error from provider (their fault, might be retryable)
+    // 429 === too many requests, we got rate limited so safe to try again
+    status >= 500 || status === 429
+  );
 }
