@@ -1,3 +1,4 @@
+import { IntegrationProviderAPIError } from '@jupiterone/integration-sdk-core';
 import { Response } from 'node-fetch';
 
 export class RetryableError extends Error {
@@ -11,7 +12,10 @@ export function retryableRequestError(response: Response): RetryableError {
 }
 
 export function fatalRequestError(response: Response): Error {
-  return new Error(
-    `Encountered unexpected response from provider (status="${response.status}")`,
-  );
+  return new IntegrationProviderAPIError({
+    statusText: `Encountered fatal response from provider (status=${response.status})`,
+    endpoint: response.url,
+    status: response.status,
+    fatal: true,
+  });
 }

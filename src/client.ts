@@ -55,7 +55,7 @@ export class APIClient {
             const xRateLimitHeader = Number(headers.get('x-ratelimit-limit'));
             const rateLimitHeader = Number(headers.get('ratelimit-limit'));
             const serverRetryDelay =
-              xRateLimitHeader || retryAfterHeader || rateLimitHeader;
+              retryAfterHeader || xRateLimitHeader || rateLimitHeader;
 
             if (serverRetryDelay) {
               retryDelay = serverRetryDelay * 1000;
