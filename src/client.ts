@@ -40,35 +40,47 @@ export class APIClient {
       };
 
       let retryDelay = 0;
-      const response = await retry(async () => {
-        const resp = await fetch(endpoint, options);
-        retryDelay = 5000;
+      const response = await retry(
+        async () => {
+          const resp = await fetch(endpoint, options);
+          retryDelay = 5000;
 
-        if (resp.ok) {
-          return resp;
-        }
-
-        if (isRetryableRequest(resp)) {
-          const headers = resp.headers;
-          const retryAfterHeader = Number(headers.get('retry-after'));
-          const xRateLimitHeader = Number(headers.get('x-ratelimit-limit'));
-          const rateLimitHeader = Number(headers.get('ratelimit-limit'));
-          const serverRetryDelay =
-            xRateLimitHeader || retryAfterHeader || rateLimitHeader;
-
-          if (serverRetryDelay) {
-            retryDelay = serverRetryDelay * 1000;
-            this.logger?.warn(serverRetryDelay, 'Retry Delay');
+          if (resp.ok) {
+            return resp;
           }
 
-          this.logger?.warn(resp, 're-trying request');
+          if (isRetryableRequest(resp)) {
+            const headers = resp.headers;
+            const retryAfterHeader = Number(headers.get('retry-after'));
+            const xRateLimitHeader = Number(headers.get('x-ratelimit-limit'));
+            const rateLimitHeader = Number(headers.get('ratelimit-limit'));
+            const serverRetryDelay =
+              xRateLimitHeader || retryAfterHeader || rateLimitHeader;
 
-          throw retryableRequestError(resp);
-        } else {
-          this.logger?.warn(resp, 'fatal request error, not retrying');
-          throw fatalRequestError(resp);
-        }
-      });
+            if (serverRetryDelay) {
+              retryDelay = serverRetryDelay * 1000;
+              this.logger?.warn(serverRetryDelay, 'Retry Delay');
+            }
+
+            this.logger?.warn(resp, 're-trying request');
+
+            throw retryableRequestError(resp);
+          } else {
+            this.logger?.warn(resp, 'fatal request error, not retrying');
+            throw fatalRequestError(resp);
+          }
+        },
+        {
+          delay: retryDelay,
+          maxAttempts: 10,
+          handleError: (err, context) => {
+            this.logger?.warn(err, 're-trying request');
+            if (!err.retryable) {
+              context.abort();
+            }
+          },
+        },
+      );
 
       return response.json();
     } catch (err) {
