@@ -71,7 +71,7 @@ export class APIClient {
           }
         },
         {
-          delay: retryDelay,
+          calculateDelay: () => retryDelay,
           maxAttempts: 10,
           handleError: (err, context) => {
             this.logger?.warn(err, 're-trying request');
