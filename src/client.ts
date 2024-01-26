@@ -62,7 +62,7 @@ export class APIClient {
               this.logger?.warn(serverRetryDelay, 'Retry Delay');
             }
 
-            this.logger?.warn(resp, 're-trying request');
+            this.logger?.warn(resp, 're-trying request from fetch');
 
             throw retryableRequestError(resp);
           } else {
@@ -74,8 +74,10 @@ export class APIClient {
           calculateDelay: () => retryDelay,
           maxAttempts: 10,
           handleError: (err, context) => {
-            this.logger?.warn(err, 're-trying request');
-            if (!err.retryable) {
+            this.logger?.warn(err, 'retry handle-error');
+            if (err.code === 'ECONNRESET') {
+              this.logger?.warn(err, 'Encountered ECONNRESET. Retrying.');
+            } else if (!err.retryable) {
               context.abort();
             }
           },
