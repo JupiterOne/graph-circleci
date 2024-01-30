@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.16 2024-01-30
+
+- Add fetch pipelines permission warning.
+
 ## 1.0.15 2024-01-24
 
 - Added check to rety when there's an ECONNRESET error occur
