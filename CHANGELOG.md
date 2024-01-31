@@ -8,7 +8,7 @@ and this project adheres to
 
 ## [Unreleased]
 
-## 1.0.17 2024-01-31
+## 1.0.19 2024-01-31
 
 - Update error
 
