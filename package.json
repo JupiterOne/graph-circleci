@@ -1,6 +1,6 @@
 {
   "name": "@jupiterone/graph-circleci",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "A JupiterOne Integration for ingesting data of the CircleCI",
   "repository": {
     "type": "git",
@@ -37,12 +37,12 @@
     "prepush": "yarn format:check && yarn lint && yarn type-check && jest --changedSince main"
   },
   "peerDependencies": {
-    "@jupiterone/integration-sdk-core": "^11.0.2"
+    "@jupiterone/integration-sdk-core": "^11.8.0"
   },
   "devDependencies": {
-    "@jupiterone/integration-sdk-core": "^11.0.2",
-    "@jupiterone/integration-sdk-dev-tools": "^11.0.2",
-    "@jupiterone/integration-sdk-testing": "^11.0.2"
+    "@jupiterone/integration-sdk-core": "^11.8.0",
+    "@jupiterone/integration-sdk-dev-tools": "^11.8.0",
+    "@jupiterone/integration-sdk-testing": "^11.8.0"
   },
   "dependencies": {
     "@lifeomic/attempt": "3.0.2",

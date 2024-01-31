@@ -44,7 +44,7 @@ export async function fetchPipelines({
             },
           );
         } catch (e) {
-          if (e.code === 404) {
+          if (e.status === 404) {
             const userGroup = getRawData<CircleCIUserGroup>(userGroupEntity);
 
             inaccessibleOrganizations.push(userGroup?.slug as string);

@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.17 2024-01-31
+
+- Update error
+
 ## 1.0.16 2024-01-30
 
 - Add fetch pipelines permission warning.

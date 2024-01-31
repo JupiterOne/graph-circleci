@@ -119,7 +119,7 @@ export class APIClient {
       throw new IntegrationProviderAPIError({
         cause: new Error(err.message),
         endpoint: uri,
-        status: err.statusCode,
+        status: err.status,
         statusText: err.message,
       });
     }
