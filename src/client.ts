@@ -101,19 +101,23 @@ export class APIClient {
     iteratee: ResourceIteratee<T>,
   ): Promise<void> {
     try {
-      let next: string | null = null;
+      let nextPageToken: string | null = null;
+      let hasNext = false;
       do {
-        const response = await this.getRequest(next || uri, method);
+        const response = await this.getRequest(nextPageToken || uri, method);
 
         for (const item of response.items) {
           await iteratee(item);
         }
 
-        next = response.next_page_token;
-        if (next) {
-          next = `${uri}&page_token=${response.next_page_token}`;
+        nextPageToken = response.next_page_token;
+        if (nextPageToken) {
+          nextPageToken = `${uri}&page_token=${response.next_page_token}`;
+          hasNext = true;
+        } else {
+          hasNext = false;
         }
-      } while (next);
+      } while (hasNext);
     } catch (err) {
       this.logger?.warn(err, 'Could not get Pipeline Paginated Request');
       throw new IntegrationProviderAPIError({
