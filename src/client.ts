@@ -4,6 +4,7 @@ import {
   IntegrationProviderAPIError,
   IntegrationProviderAuthenticationError,
 } from '@jupiterone/integration-sdk-core';
+import pMap from 'p-map';
 
 import { IntegrationConfig } from './config';
 import {
@@ -106,9 +107,13 @@ export class APIClient {
       do {
         const response = await this.getRequest(nextPageToken || uri, method);
 
-        for (const item of response.items) {
-          await iteratee(item);
-        }
+        await pMap(
+          response.items,
+          async (item) => {
+            await iteratee(item as T);
+          },
+          { concurrency: 5 },
+        );
 
         nextPageToken = response.next_page_token;
         if (nextPageToken) {
@@ -148,7 +153,7 @@ export class APIClient {
     iteratee: ResourceIteratee<CircleCIPipeline>,
   ): Promise<void> {
     organization = encodeURIComponent(organization);
-    await this.pipelinePaginatedRequest(
+    await this.pipelinePaginatedRequest<CircleCIPipeline>(
       this.withBaseUri(`pipeline?org-slug=${organization}`),
       'GET',
       iteratee,
