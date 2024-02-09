@@ -117,7 +117,7 @@ export class APIClient {
 
         nextPageToken = response.next_page_token;
         if (nextPageToken) {
-          nextPageToken = `${uri}&page_token=${response.next_page_token}`;
+          nextPageToken = `${uri}&page-token=${response.next_page_token}`;
           hasNext = true;
         } else {
           hasNext = false;
