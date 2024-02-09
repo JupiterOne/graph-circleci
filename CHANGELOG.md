@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.0.21 2024-02-09
+
+- Fix pipelines pagination
+
 ## 1.0.21 2024-02-06
 
 - Use pmap
