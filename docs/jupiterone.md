@@ -80,25 +80,35 @@ https://github.com/JupiterOne/sdk/blob/main/docs/integrations/development.md
 
 The following entities are created:
 
-| Resources | Entity `_type`        | Entity `_class` |
-| --------- | --------------------- | --------------- |
-| Account   | `circleci_account`    | `Account`       |
-| Pipeline  | `circleci_pipeline`   | `Configuration` |
-| Project   | `circleci_project`    | `Repository`    |
-| User      | `circleci_user`       | `User`          |
-| UserGroup | `circleci_user_group` | `Group`         |
+| Resources                    | Entity `_type`                          | Entity `_class` |
+| ---------------------------- | --------------------------------------- | --------------- |
+| Account                      | `circleci_account`                      | `Account`       |
+| Context                      | `circleci_context`                      | `Configuration` |
+| Context Environment Variable | `circleci_context_environment_variable` | `Configuration` |
+| Pipeline                     | `circleci_pipeline`                     | `Configuration` |
+| Pipeline Workflow            | `circleci_workflow`                     | `Configuration` |
+| Project                      | `circleci_project`                      | `Repository`    |
+| Project Environment Variable | `circleci_project_environment_variable` | `Configuration` |
+| User                         | `circleci_user`                         | `User`          |
+| UserGroup                    | `circleci_user_group`                   | `Group`         |
+| Workflow Job                 | `circleci_job`                          | `Task`          |
 
 ### Relationships
 
 The following relationships are created:
 
-| Source Entity `_type` | Relationship `_class` | Target Entity `_type` |
-| --------------------- | --------------------- | --------------------- |
-| `circleci_account`    | **HAS**               | `circleci_user`       |
-| `circleci_account`    | **HAS**               | `circleci_user_group` |
-| `circleci_project`    | **HAS**               | `circleci_pipeline`   |
-| `circleci_user_group` | **HAS**               | `circleci_project`    |
-| `circleci_user_group` | **HAS**               | `circleci_user`       |
+| Source Entity `_type` | Relationship `_class` | Target Entity `_type`                   |
+| --------------------- | --------------------- | --------------------------------------- |
+| `circleci_account`    | **HAS**               | `circleci_user`                         |
+| `circleci_account`    | **HAS**               | `circleci_user_group`                   |
+| `circleci_context`    | **HAS**               | `circleci_context_environment_variable` |
+| `circleci_pipeline`   | **HAS**               | `circleci_workflow`                     |
+| `circleci_project`    | **USES**              | `circleci_context_environment_variable` |
+| `circleci_project`    | **HAS**               | `circleci_pipeline`                     |
+| `circleci_project`    | **HAS**               | `circleci_project_environment_variable` |
+| `circleci_user_group` | **HAS**               | `circleci_project`                      |
+| `circleci_user_group` | **HAS**               | `circleci_user`                         |
+| `circleci_workflow`   | **HAS**               | `circleci_job`                          |
 
 <!--
 ********************************************************************************
