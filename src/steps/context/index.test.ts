@@ -9,13 +9,13 @@ afterEach(async () => {
   await recording.stop();
 });
 
-test(Steps.PIPELINES, async () => {
+test(Steps.CONTEXTS, async () => {
   recording = setupProjectRecording({
     directory: __dirname,
-    name: Steps.PIPELINES,
+    name: Steps.CONTEXTS,
   });
 
-  const stepConfig = buildStepTestConfigForStep(Steps.PIPELINES);
+  const stepConfig = buildStepTestConfigForStep(Steps.CONTEXTS);
   const stepResult = await executeStepWithDependencies(stepConfig);
   expect(stepResult).toMatchStepMetadata(stepConfig);
 });

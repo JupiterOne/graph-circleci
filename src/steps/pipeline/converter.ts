@@ -8,7 +8,7 @@ import { Entities } from '../constants';
 import { CircleCIPipeline } from '../../types';
 
 export function getPipelineKey(id: string): string {
-  return `circleci_pipeline:${id}`;
+  return `${Entities.PIPELINE._type}:${id}`;
 }
 
 export function createPipelineEntity(pipeline: CircleCIPipeline): Entity {

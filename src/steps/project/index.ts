@@ -10,7 +10,11 @@ import { createAPIClient } from '../../client';
 import { IntegrationConfig } from '../../config';
 import { CircleCIPipeline, CircleCIProject } from '../../types';
 import { Entities, Relationships, Steps } from '../constants';
-import { createProjectEntity, getProjectKey } from './converter';
+import {
+  createProjectEntity,
+  createProjectEnvVariableEntity,
+  getProjectKey,
+} from './converter';
 import { getUserGroupKey } from '../user-groups/converter';
 
 export async function fetchProjects({
@@ -63,8 +67,48 @@ export async function fetchProjects({
   );
 }
 
-export async function buildUserGroupAndProjectRelationship({
+export async function fetchProjectEnvVariables({
   instance,
+  jobState,
+  logger,
+}: IntegrationStepExecutionContext<IntegrationConfig>) {
+  const apiClient = createAPIClient(instance.config, logger);
+
+  await jobState.iterateEntities(
+    { _type: Entities.REPOSITORY._type },
+    async (projectEntity) => {
+      const projectRaw = getRawData<CircleCIProject>(projectEntity);
+
+      if (!projectRaw?.slug) return;
+
+      await apiClient.iterateProjectEnvVariables(
+        projectRaw?.slug,
+        async (envVariable) => {
+          const envVariableEntity = createProjectEnvVariableEntity(
+            envVariable,
+            projectRaw.id,
+            projectRaw.slug,
+          );
+
+          if (!jobState.hasKey(envVariableEntity._key)) {
+            await jobState.addEntity(envVariableEntity);
+          }
+
+          // Create project -> has -> env variable relationship
+          await jobState.addRelationship(
+            createDirectRelationship({
+              _class: RelationshipClass.HAS,
+              from: projectEntity,
+              to: envVariableEntity,
+            }),
+          );
+        },
+      );
+    },
+  );
+}
+
+export async function buildUserGroupAndProjectRelationship({
   jobState,
   logger,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
@@ -105,6 +149,14 @@ export const projectsSteps: IntegrationStep<IntegrationConfig>[] = [
     relationships: [Relationships.PROJECT_HAS_PIPELINE],
     dependsOn: [Steps.PIPELINES],
     executionHandler: fetchProjects,
+  },
+  {
+    id: Steps.PROJECTS_ENV_VARIABLES,
+    name: 'Fetch Project Environmnet Variables',
+    entities: [Entities.REPOSITORY_ENV_VARIABLE],
+    relationships: [Relationships.PROJECT_HAS_ENV_VARIABLE],
+    dependsOn: [Steps.PROJECTS],
+    executionHandler: fetchProjectEnvVariables,
   },
   {
     id: Steps.BUILD_USER_GROUPS_PROJECTS_RELATIONSHIPS,

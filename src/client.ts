@@ -12,6 +12,12 @@ import {
   CircleCIProject,
   CircleCIUser,
   CircleCIUserGroup,
+  CircleCIProjectEnvVariable,
+  CircleCIContext,
+  CircleCIContextEnvVariable,
+  CircleCIContextRestriction,
+  CircleCIPipelineWorkflow,
+  CircleCIWorkflowJob,
 } from './types';
 
 import { retry } from '@lifeomic/attempt';
@@ -160,6 +166,28 @@ export class APIClient {
     );
   }
 
+  public async iteratePipelinesWorkflows(
+    pipelineId: string,
+    iteratee: ResourceIteratee<CircleCIPipelineWorkflow>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest<CircleCIPipelineWorkflow>(
+      this.withBaseUri(`pipeline/${pipelineId}/workflow`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  public async iterateWorkflowJobs(
+    workflowId: string,
+    iteratee: ResourceIteratee<CircleCIWorkflowJob>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest<CircleCIWorkflowJob>(
+      this.withBaseUri(`workflow/${workflowId}/job`),
+      'GET',
+      iteratee,
+    );
+  }
+
   public async iterateUserGroups(
     iteratee: ResourceIteratee<CircleCIUserGroup>,
   ): Promise<void> {
@@ -170,6 +198,50 @@ export class APIClient {
     for (const item of userGroups) {
       await iteratee(item);
     }
+  }
+
+  public async iterateProjectEnvVariables(
+    projectSlug: string,
+    iteratee: ResourceIteratee<CircleCIProjectEnvVariable>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest<CircleCIProjectEnvVariable>(
+      this.withBaseUri(`project/${encodeURIComponent(projectSlug)}/envvar`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  public async iterateContexts(
+    ownerSlug: string,
+    iteratee: ResourceIteratee<CircleCIContext>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest<CircleCIContext>(
+      this.withBaseUri(`context?owner-slug=${encodeURIComponent(ownerSlug)}`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  public async iterateContextEnvVariables(
+    contextId: string,
+    iteratee: ResourceIteratee<CircleCIContextEnvVariable>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest<CircleCIContextEnvVariable>(
+      this.withBaseUri(`context/${contextId}/environment-variable`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  public async iterateContextRestrictions(
+    contextId: string,
+    iteratee: ResourceIteratee<CircleCIContextRestriction>,
+  ): Promise<void> {
+    await this.pipelinePaginatedRequest<CircleCIContextRestriction>(
+      this.withBaseUri(`context/${encodeURIComponent(contextId)}/restrictions`),
+      'GET',
+      iteratee,
+    );
   }
 
   public async fetchUser(): Promise<CircleCIUser> {
@@ -183,7 +255,9 @@ export class APIClient {
   public async fetchProjectDetails(
     project_slug: string,
   ): Promise<CircleCIProject> {
-    return this.getRequest(this.withBaseUri(`project/${project_slug}`));
+    return this.getRequest(
+      this.withBaseUri(`project/${encodeURIComponent(project_slug)}`),
+    );
   }
 
   public async fetchUserDetail(): Promise<CircleCIUser> {

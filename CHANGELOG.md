@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.1.0 2024-03-21
+
+- Genenral integration enhancements. Added workflows, jobs, and env variables
+  (project and context).
+
 ## 1.0.21 2024-02-09
 
 - Fix pipelines pagination
