@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import {
   IntegrationLogger,
   IntegrationProviderAuthenticationError,
+  IntegrationProviderAuthorizationError,
 } from '@jupiterone/integration-sdk-core';
 import pMap from 'p-map';
 
@@ -79,7 +80,7 @@ export class APIClient {
               'fatal request error, not retrying',
             );
             if (resp.status === 401) {
-              throw new IntegrationProviderAuthenticationError({
+              throw new IntegrationProviderAuthorizationError({
                 statusText: `Encountered authorization error from provider (status=${resp.status})`,
                 endpoint: resp.url,
                 status: resp.status,
