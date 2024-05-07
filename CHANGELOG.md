@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.1.0 2024-05-07
+
+- Better error handling in client. We will now throw Integration Authorization
+  errors on 401 errors.
+
 ## 1.1.0 2024-03-21
 
 - Genenral integration enhancements. Added workflows, jobs, and env variables
