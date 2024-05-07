@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
 import {
   IntegrationLogger,
-  IntegrationProviderAPIError,
   IntegrationProviderAuthenticationError,
+  IntegrationProviderAuthorizationError,
 } from '@jupiterone/integration-sdk-core';
 import pMap from 'p-map';
 
@@ -69,11 +69,23 @@ export class APIClient {
               this.logger?.warn(serverRetryDelay, 'Retry Delay');
             }
 
-            this.logger?.warn(resp, 're-trying request from fetch');
-
+            this.logger?.warn(
+              { statusCode: resp.status },
+              're-trying request from fetch',
+            );
             throw retryableRequestError(resp);
           } else {
-            this.logger?.warn(resp, 'fatal request error, not retrying');
+            this.logger?.warn(
+              { statusCode: resp.status },
+              'fatal request error, not retrying',
+            );
+            if (resp.status === 401) {
+              throw new IntegrationProviderAuthorizationError({
+                statusText: `Encountered authorization error from provider (status=${resp.status})`,
+                endpoint: resp.url,
+                status: resp.status,
+              });
+            }
             throw fatalRequestError(resp);
           }
         },
@@ -81,7 +93,6 @@ export class APIClient {
           calculateDelay: () => retryDelay,
           maxAttempts: 10,
           handleError: (err, context) => {
-            this.logger?.warn(err, 'retry handle-error');
             if (err.code === 'ECONNRESET') {
               this.logger?.warn(err, 'Encountered ECONNRESET. Retrying.');
             } else if (!err.retryable) {
@@ -94,11 +105,7 @@ export class APIClient {
       return response.json();
     } catch (err) {
       this.logger?.warn(err, 'Could not get Request on API Client');
-      throw new IntegrationProviderAPIError({
-        endpoint: endpoint,
-        status: err.status,
-        statusText: err.statusText,
-      });
+      throw err;
     }
   }
 
@@ -131,12 +138,7 @@ export class APIClient {
       } while (hasNext);
     } catch (err) {
       this.logger?.warn(err, 'Could not get Pipeline Paginated Request');
-      throw new IntegrationProviderAPIError({
-        cause: new Error(err.message),
-        endpoint: uri,
-        status: err.status,
-        statusText: err.message,
-      });
+      throw err;
     }
   }
 
